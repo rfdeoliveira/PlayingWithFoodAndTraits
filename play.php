@@ -13,12 +13,12 @@ trait HasAttributes
     {
         $attributes = $this->attributes();
 
-        foreach ($attributes as $key => $item) {
+        foreach ($attributes as $attributeName => $item) {
             if (! is_object($item)) {
                 continue;
             }
 
-            $attributes[$key] = $item->toArray();
+            $attributes[$attributeName] = $item->toArray();
         }
 
         return $attributes;
@@ -51,11 +51,27 @@ class Recipe
 {
     use HasAttributes;
 
-    private $ingredients = [];
+    private $ingredients;
+
+    public function __construct()
+    {
+        $this->ingredients = new \ArrayObject;
+    }
 
     public function addIngredient(Ingredient $ingredient)
     {
-        $this->ingredients[] = $ingredient;
+        $this->ingredients->append($ingredient);
+    }
+
+    public function toArray()
+    {
+        $attributes = [];
+
+        foreach ($this->ingredients as $ingredients) {
+            $attributes[] = $ingredients->toArray();
+        }
+
+        return ['ingredients' => $attributes];
     }
 }
 
@@ -66,6 +82,7 @@ class Sandwich
     private $name;
     private $size;
     private $recipe;
+
 
     public function __construct($name, $size, Recipe $recipe)
     {
@@ -109,10 +126,9 @@ $recipe = new Recipe();
 $recipe->addIngredient(new Ingredient('bread'));
 $recipe->addIngredient(new Ingredient('hamburger'));
 
-$sandwich = new Sandwich('Big Mac', 'large', $recipe);
-
-$beverage = new Beverage('Coca-Cola', 'medium', 'cola');
-
-$order = new Order($sandwich, $beverage);
+$order = new Order(
+    new Sandwich('Big Mac', 'large', $recipe),
+    new Beverage('Coca-Cola', 'medium', 'cola')
+);
 
 echo $order;
